@@ -15,14 +15,24 @@ app.use(express.json());
 // =========================================
 
 // get notes
-app.get('/api/notes', (req, res) => {
-    let results = notes;
-    console.log(req.query)
-    res.json(results);
+// app.get('/api/notes', (req, res) => {
+//     let results = notes;
+//     console.log(req.query)
+//     res.json(results);
+// });
+
+// Route that returns index.html
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, './public/index.html'));
+});
+
+// Route that returns notes.html
+app.get('/notes', (req, res) => {
+    res.sendFile(path.join(__dirname, './public/notes.html'));
 });
 
 // Listener
 // ==========================================
-app.listen(3001, () => {
-    console.log(`API server now on port 3001`)
+app.listen(PORT, () => {
+    console.log(`API server now on ${PORT}`)
 });
