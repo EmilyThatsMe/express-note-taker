@@ -1,97 +1,73 @@
-// // Dependencies
-// // ==========================================
-// const express = require("express");
-// const app = express();
-// const { notes } = require("./db/db.json");
-// const path = require("path");
-// const exp = require("constants");
-// const { request } = require("http");
-// const { fstat } = require("fs");
-// const { json } = require("express");
-// const PORT = 3001;
-
-// // Sets up Express app to handle data parsing
-// app.use(express.urlencoded({ extended: true }));
-// app.use(express.json());
-// app.use(express.static("public"));
-
-// // Routes
-// // =========================================
-
-// // Route to get notes
-// app.get("/api/notes", (req, res) => {
-
-//    let results = notes;
-//    console.log(req.query);
-//    res.json(results);
-// });
-
-// // Route that returns index.html
-// app.get("/", (req, res) => {
-//   res.sendFile(path.join(__dirname, "./public/index.html"));
-// });
-
-// // Route that returns notes.html
-// app.get("/notes", (req, res) => {
-//   res.sendFile(path.join(__dirname, "./public/notes.html"));
-// });
-
-// // API POST route
-// app.post("api/notes", (req, res) => {
-//   if (err) {
-//     console.log("File read failed:", err);
-//     return;
-//   }
-//   console.log("File data:", jsonString);
-//   response.json(JSON.parse(jsonString));
-
-//   // parse note object into json
-//   var notes = JSON.parse(jasonString);
-
-//   // newNote object
-//   const newNote = {
-//     title: request.body.title,
-//     text: request.body.text,
-//     id: Math.random().toString(36).substr(2, 9),
-//   };
-
-//   console.log(newNote);
-
-//   // Push newNote into note array and stringify
-//   let jsonNotes = JSON.stringify(notes);
-
-//   fstat.writeFile(path.join(__dirname, "db", "db.json"), jsonNotes, (err) => {
-//     if (err) {
-//       return console.log(err);
-//     }
-//     console.log("Success!", jsonNotes);
-//     return jsonNotes;
-//   });
-// });
-
-// // Listener
-// // ==========================================
-// app.listen(PORT, () => {
-//   console.log(`API server now on ${PORT}`);
-// });
-
 // Dependencies
-// =================================================
-const express = require('express');
-const apiRoutes = require('./routes/apiRoutes');
-const htmlRoutes = require('./routes/htmlRoutes');
-const app = express();
+// ========================================================
+const express = require("express");
+const path = require("path");
+const notes = require("./db/db.json");
+const fs = require("fs");
 const PORT = process.env.PORT || 3001;
+const app = express();
+// const apiRoutes = require('./routes/apiRoutes');
+// const htmlRoutes = require('./routes/htmlRoutes');
 
-// Sets up Express app to handle data parsing
+
+// Sets up the Express app to handle data parsing
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
-app.use(express.static('public'));
-app.use('/api', apiRoutes);
-app.use('/', htmlRoutes);
+app.use(express.static("public"));
+// app.use('/api', apiRoutes);
+// app.use('/', htmlRoutes);
+
+
+// Routes
+// =========================================================
+
+// API Routes
+app.get('/api/notes', (req, res) => {
+  res.json(notes);
+});
+
+app.post('/api/notes', (req, res) => {
+  req.body.id = notes.length;
+  const newNote = req.body;
+  notes.push(newNote);
+  fs.writeFileSync(
+    path.join(__dirname, '/db/db.json'),
+    JSON.stringify(notes, null, 2)
+  );
+  res.json(newNote);
+});
+
+app.delete('/api/notes/:id', (req, res) => {
+  //remove the appropriate note
+  const deleteIndex = req.params.id;
+  notes.splice(deleteIndex, 1);
+
+  //reassign the notei ids
+  for(let i = 0; i < notes.length; i++){
+    console.log(notes[i]);
+    notes[i].id = i;
+    console.log(notes[i]);
+  }
+
+  fs.writeFileSync(
+    path.join(__dirname, '/db/db.json'),
+    JSON.stringify(notes, null, 2)
+  );
+  //update the db.json file
+  res.json(req.body);
+});
+
+// HTML Rotues
+app.get("/notes", (req, res) => {
+  res.sendFile(path.join(__dirname, "/public/notes.html"));
+});
+
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "/public/index.html"));
+});
 
 // Listener
-//==================================================
+// =========================================================================
 app.listen(PORT, () => {
-  console.log(`API server is ready on ${PORT}`);
+  console.log(`API server now on port ${PORT}!`);
 });
